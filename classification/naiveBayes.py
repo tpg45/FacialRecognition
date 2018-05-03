@@ -1,112 +1,71 @@
-# naiveBayes.py
-# -------------
-# Licensing Information: Please do not distribute or publish solutions to this
-# project. You are free to use and extend these projects for educational
-# purposes. The Pacman AI projects were developed at UC Berkeley, primarily by
-# John DeNero (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
-# For more info, see http://inst.eecs.berkeley.edu/~cs188/sp09/pacman.html
+class NaiveBayes(object):
+    def __init__(self):
+        pass
 
-import util
-import classificationMethod
-import math
+    def train(self, data):
+        frequency_table = {}
+        labels = []
 
-class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
-  """
-  See the project description for the specifications of the Naive Bayes classifier.
-  
-  Note that the variable 'datum' in this code refers to a counter of features
-  (not to a raw samples.Datum).
-  """
-  def __init__(self, legalLabels):
-    self.legalLabels = legalLabels
-    self.type = "naivebayes"
-    self.k = 1 # this is the smoothing parameter, ** use it in your train method **
-    self.automaticTuning = False # Look at this flag to decide whether to choose k automatically ** use this in your train method **
-    
-  def setSmoothing(self, k):
-    """
-    This is used by the main method to change the smoothing parameter before training.
-    Do not modify this method.
-    """
-    self.k = k
+        for label, image_data in data:
+            if label not in frequency_table:
+                frequency_table[label] = {}
+                labels.append(label)
 
-  def train(self, trainingData, trainingLabels, validationData, validationLabels):
-    """
-    Outside shell to call your method. Do not modify this method.
-    """  
-      
-    # might be useful in your code later...
-    # this is a list of all features in the training set.
-    self.features = list(set([ f for datum in trainingData for f in datum.keys() ]));
-    
-    if (self.automaticTuning):
-        kgrid = [0.001, 0.01, 0.05, 0.1, 0.5, 1, 5, 10, 20, 50]
-    else:
-        kgrid = [self.k]
-        
-    self.trainAndTune(trainingData, trainingLabels, validationData, validationLabels, kgrid)
-      
-  def trainAndTune(self, trainingData, trainingLabels, validationData, validationLabels, kgrid):
-    """
-    Trains the classifier by collecting counts over the training data, and
-    stores the Laplace smoothed estimates so that they can be used to classify.
-    Evaluate each value of k in kgrid to choose the smoothing parameter 
-    that gives the best accuracy on the held-out validationData.
-    
-    trainingData and validationData are lists of feature Counters.  The corresponding
-    label lists contain the correct label for each datum.
-    
-    To get the list of all possible features or labels, use self.features and 
-    self.legalLabels.
-    """
+            for pixel in image_data:
+                if pixel not in frequency_table[label]:
+                    frequency_table[label][pixel] = {
+                        'black': 0,
+                        'white': 0
+                    }
 
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-        
-  def classify(self, testData):
-    """
-    Classify the data based on the posterior distribution over labels.
-    
-    You shouldn't modify this method.
-    """
-    guesses = []
-    self.posteriors = [] # Log posteriors are stored for later data analysis (autograder).
-    for datum in testData:
-      posterior = self.calculateLogJointProbabilities(datum)
-      guesses.append(posterior.argMax())
-      self.posteriors.append(posterior)
-    return guesses
-      
-  def calculateLogJointProbabilities(self, datum):
-    """
-    Returns the log-joint distribution over legal labels and the datum.
-    Each log-probability should be stored in the log-joint counter, e.g.    
-    logJoint[3] = <Estimate of log( P(Label = 3, datum) )>
-    
-    To get the list of all possible features or labels, use self.features and 
-    self.legalLabels.
-    """
-    logJoint = util.Counter()
-    
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    
-    return logJoint
-  
-  def findHighOddsFeatures(self, label1, label2):
-    """
-    Returns the 100 best features for the odds ratio:
-            P(feature=1 | label1)/P(feature=1 | label2) 
-    
-    Note: you may find 'self.features' a useful way to loop through all possible features
-    """
-    featuresOdds = []
-       
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+                if image_data[pixel] == 1:
+                    frequency_table[label][pixel]['black'] += 1
+                else:
+                    frequency_table[label][pixel]['white'] += 1
 
-    return featuresOdds
-    
+        self.frequency_taqble = frequency_table
+        self.labels = labels
+        self.total_images = len(data)
 
-    
-      
+    def classify(self, data):
+        guesses = []
+
+        for image in data:
+            highest_probability = 0
+            best_guess = self.labels[0]
+
+            for label in self.labels:
+                probability = self.calculatePosterior(label, image)
+
+                if probability > highest_probability:
+                    highest_probability = probability
+                    best_guess = label
+
+            guesses.append(best_guess)
+
+        return guesses
+
+    def calculatePosterior(self, label, data):
+        trainingData = self.frequency_taqble[label]
+
+        probability = 1
+
+        for pixel in data:
+            total_values = float(trainingData[pixel]['black'] + trainingData[pixel]['white'])
+
+            if data[pixel] == 1:
+                if trainingData[pixel]['black'] == 0:
+                    probability *= float(1) / total_values
+                    # print 'multiplying by', float(1) / total_values
+                else:
+                    probability *= float(trainingData[pixel]['black']) / total_values
+                    # print 'multiplying by', float(trainingData[pixel]['black']) / total_values
+            else:
+                if trainingData[pixel]['white'] == 0:
+                    probability *= float(1) / total_values
+                    # print 'multiplying by', float(1) / total_values
+                else:
+                    probability *= float(trainingData[pixel]['white']) / total_values
+                    # print 'multiplying by', float(trainingData[pixel]['white']) / total_values
+
+        return probability
