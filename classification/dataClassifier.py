@@ -1,5 +1,6 @@
 import samples
 from naiveBayes import NaiveBayes
+from perceptron import PerceptronClassifier
 
 TEST_SET_SIZE = 100
 DIGIT_DATUM_WIDTH = 28
@@ -7,13 +8,16 @@ DIGIT_DATUM_HEIGHT = 28
 FACE_DATUM_WIDTH = 60
 FACE_DATUM_HEIGHT = 70
 
+
 MODE_DIGITS = 0
 MODE_FACES = 1
+legalLabels = []
 
-# Change this line.
-mode = MODE_DIGITS
-num_training = 5000
-num_testing = 1000
+# Change these lines.
+algorithm = PerceptronClassifier
+mode = MODE_FACES
+num_training = 300
+num_testing = 150
 
 
 def basicFeatureExtractorDigit(datum):
@@ -57,6 +61,7 @@ if mode == MODE_DIGITS:
     trainingLabels = samples.loadLabelsFile("digitdata/traininglabels", num_training)
     rawTestData = samples.loadDataFile("digitdata/testimages", num_testing, DIGIT_DATUM_WIDTH, DIGIT_DATUM_HEIGHT)
     testLabels = samples.loadLabelsFile("digitdata/testlabels", num_testing)
+    legalLabels = [0,1,2,3,4,5,6,7,8,9]
 
     feature_function = basicFeatureExtractorDigit
 else:
@@ -64,14 +69,15 @@ else:
     trainingLabels = samples.loadLabelsFile("facedata/facedatatrainlabels", num_training)
     rawTestData = samples.loadDataFile("facedata/facedatatest", num_testing, FACE_DATUM_WIDTH, FACE_DATUM_HEIGHT)
     testLabels = samples.loadLabelsFile("facedata/facedatatestlabels", num_testing)
+    legalLabels = [0,1]
 
     feature_function = basicFeatureExtractorFace
 
 trainingData = map(feature_function, rawTrainingData)
 testData = map(feature_function, rawTestData)
 
-classifier = NaiveBayes()
-classifier.train(zip(trainingLabels, trainingData))
+classifier = algorithm(legalLabels)
+classifier.train(zip(trainingData, trainingLabels))
 
 guesses = classifier.classify(testData)
 correct = [guesses[i] == testLabels[i] for i in range(len(testLabels))].count(True)

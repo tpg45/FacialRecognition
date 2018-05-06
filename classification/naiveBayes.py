@@ -1,12 +1,12 @@
 class NaiveBayes(object):
-    def __init__(self):
+    def __init__(self, legalLabels):
         pass
 
     def train(self, data):
         frequency_table = {}
         labels = []
 
-        for label, image_data in data:
+        for image_data, label in data:
             if label not in frequency_table:
                 frequency_table[label] = {}
                 labels.append(label)
@@ -23,7 +23,7 @@ class NaiveBayes(object):
                 else:
                     frequency_table[label][pixel]['white'] += 1
 
-        self.frequency_taqble = frequency_table
+        self.frequency_table = frequency_table
         self.labels = labels
         self.total_images = len(data)
 
@@ -46,7 +46,7 @@ class NaiveBayes(object):
         return guesses
 
     def calculatePosterior(self, label, data):
-        trainingData = self.frequency_taqble[label]
+        trainingData = self.frequency_table[label]
 
         probability = 1
 
