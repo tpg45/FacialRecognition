@@ -5,11 +5,15 @@ class NaiveBayes(object):
     def train(self, data):
         frequency_table = {}
         labels = []
+        occurrences = {}
 
         for image_data, label in data:
             if label not in frequency_table:
                 frequency_table[label] = {}
                 labels.append(label)
+                occurrences[label] = 0
+
+            occurrences[label] += 1
 
             for pixel in image_data:
                 if pixel not in frequency_table[label]:
@@ -26,12 +30,13 @@ class NaiveBayes(object):
         self.frequency_table = frequency_table
         self.labels = labels
         self.total_images = len(data)
+        self.occurrences = occurrences
 
     def classify(self, data):
         guesses = []
 
         for image in data:
-            highest_probability = 0
+            highest_probability = -2147483647
             best_guess = self.labels[0]
 
             for label in self.labels:
@@ -48,24 +53,22 @@ class NaiveBayes(object):
     def calculatePosterior(self, label, data):
         trainingData = self.frequency_table[label]
 
-        probability = 1
+        import math
+
+        prior = math.log(float(self.occurrences[label]) / float(self.total_images))
 
         for pixel in data:
             total_values = float(trainingData[pixel]['black'] + trainingData[pixel]['white'])
 
             if data[pixel] == 1:
                 if trainingData[pixel]['black'] == 0:
-                    probability *= float(1) / total_values
-                    # print 'multiplying by', float(1) / total_values
+                    prior += math.log(float(1) / (total_values + 1))
                 else:
-                    probability *= float(trainingData[pixel]['black']) / total_values
-                    # print 'multiplying by', float(trainingData[pixel]['black']) / total_values
+                    prior += math.log(float(trainingData[pixel]['black'] + 1) / (total_values + 1))
             else:
                 if trainingData[pixel]['white'] == 0:
-                    probability *= float(1) / total_values
-                    # print 'multiplying by', float(1) / total_values
+                    prior += math.log(float(1) / (total_values + 1))
                 else:
-                    probability *= float(trainingData[pixel]['white']) / total_values
-                    # print 'multiplying by', float(trainingData[pixel]['white']) / total_values
+                    prior += math.log(float(trainingData[pixel]['white'] + 1) / (total_values + 1))
 
-        return probability
+        return prior

@@ -2,7 +2,6 @@ import samples
 from naiveBayes import NaiveBayes
 from perceptron import PerceptronClassifier
 
-TEST_SET_SIZE = 100
 DIGIT_DATUM_WIDTH = 28
 DIGIT_DATUM_HEIGHT = 28
 FACE_DATUM_WIDTH = 60
@@ -14,9 +13,9 @@ MODE_FACES = 1
 legalLabels = []
 
 # Change these lines.
-algorithm = PerceptronClassifier
+algorithm = NaiveBayes
 mode = MODE_FACES
-num_training = 300
+num_training = 450
 num_testing = 150
 
 
@@ -77,8 +76,21 @@ trainingData = map(feature_function, rawTrainingData)
 testData = map(feature_function, rawTestData)
 
 classifier = algorithm(legalLabels)
+
+import time
+start = time.time()
 classifier.train(zip(trainingData, trainingLabels))
+end = time.time()
+
+print end - start
 
 guesses = classifier.classify(testData)
 correct = [guesses[i] == testLabels[i] for i in range(len(testLabels))].count(True)
+
 print str(correct), ("correct out of " + str(len(testLabels)) + " (%.1f%%).") % (100.0 * correct / len(testLabels))
+
+import random
+image = random.randint(0, len(testLabels))
+
+print rawTestData[image]
+print 'actual:', testLabels[image], 'guessed:', classifier.classify([feature_function(rawTestData[image])])[0]
